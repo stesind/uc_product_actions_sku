@@ -97,24 +97,20 @@ function uc_product_actions_update_sku_action_validate($form, $form_state) {
  */
 function uc_product_actions_update_sku_action($node, $context) {
   // Get the current sell_price of the product
-  dpm($context['sku_method'], $name = NULL);
+  //dpm($context['sku_method'], $name = NULL);
   
   if ($context['sku_method'] == 'url') {
   	$src = 'node/'.$node->nid;
-  	dpm($src, $name = NULL);
+  	//dpm($src, $name = NULL);
   	$answer = explode('/', db_result(db_query("SELECT dst FROM {url_alias} WHERE src='%s'", $src)));
   	$new_model= $answer[1];
-  	dpm($new_model, $name = NULL);
+  	//dpm($new_model, $name = NULL);
   }
   elseif ($context['sku_method'] == 'nid') {
   	$new_model = $node->nid;
   }
   elseif ($context['sku_method'] == 'title') {
   	$new_model = $node->title;
-  }
-  else {
-  	//$new_model = db_result(db_query('SELECT nid FROM {uc_products} WHERE nid=%d', $node->nid));
-  	$new_model = 'test';
   }
   // Make sure we have a valid sell_price, which doesn't equal 0
   if (!is_null($new_model) && $new_model != '') {
