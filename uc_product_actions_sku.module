@@ -1,0 +1,124 @@
+<?php
+// $Id: uc_product_actions_sku.module,v 1.0 2010/10/09 08:44:17 asak Exp $
+
+/**
+ * Implements hook_help().
+ */
+function uc_product_actions_help($section) {
+  switch ($section) {
+    case 'admin/help#uc_product_actions_sku':
+      // Return a line-break version of the module README
+      return filter_filter('process', 2, NULL, file_get_contents( dirname(__FILE__) . "/README.txt") );
+  }
+}
+
+/**
+ * Implements hook_action_info().
+ *
+ * This function defines all custom actions added by this module.
+ */
+function uc_product_actions_sku_action_info() {
+  return array(
+    'uc_product_actions_update_sku_action' => array(
+      'type' => 'node',
+      'description' => t('Modify product SKU'),
+      'configurable' => TRUE,
+      'hooks' => array(
+        'nodeapi' => array('update'),
+      )
+    )
+  );
+}
+
+/**
+ * Form builder for the SKU changing action form.
+ *
+ * @param $context
+ *   An array of additional information. will include
+ *   the requested change after submission, and pass
+ *   it to the action function.
+ *
+ * @see uc_product_actions_sku_update_sku_action()
+ * @see uc_product_actions_sku_update_sku_action_validate()
+ * @see uc_product_actions_sku_update_sku_action_submit()
+ * @ingroup forms
+ */
+ 
+function uc_product_actions_update_sku_action_form($context) {
+  $form['sku_method'] = array(
+    '#title' => filter_xss(t('What method should be used to modify the SKU?')),
+    '#type' => 'select',
+    '#options' => array('nid' => filter_xss(t('Node ID')), 'title' => filter_xss(t('Title')), 'url' => filter_xss(t('URL'))),
+    '#multiple' => FALSE,
+    '#description' => filter_xss(t("Modify the SKU using NID, title or URL? Stock information will be gone!")),
+    '#default_value' => 'nid',
+  );
+  return $form;
+}
+
+/**
+ * Form submission handler for uc_product_actions_update_sku_action_form().
+ *
+ * @see uc_product_actions_update_sku_action()
+ * @see uc_product_actions_update_sku_action_form()
+ * @see uc_product_actions_update_sku_action_validate()
+ */
+function uc_product_actions_update_sku_action_submit($form, $form_state) {
+  return array('sku_method' => check_plain($form_state['values']['sku_method']) );
+}
+
+
+/**
+ * Form validation handler for uc_product_actions_update_sell_price_action_form().
+ *
+ * @see uc_product_actions_update_sku_action()
+ * @see uc_product_actions_update_sku_action_form()
+ * @see uc_product_actions_update_sku_action_submit()
+ */
+function uc_product_actions_update_sku_action_validate($form, $form_state) {
+  if (!isset($form_state['values']['sku_method'])) {
+    form_set_error('', t('You must select a method. See README.txt for more info on how to use this action.'));
+  }
+}
+
+/**
+ * This function is used to change the SKU (model) of a product.
+ *
+ * @param object $node
+ *   The node object on which this action is performed.
+ * @param array $context
+ *   An array which includes the requested change value
+ *   in $context['sell_price_change'] and the chnage method is
+ *   in $context['sell_price_method']
+ *
+ * @see uc_product_actions_update_sku_action_form()
+ * @see uc_product_actions_update_sku_action_submit()
+ * @see uc_product_actions_update_sku_action_validate()
+ */
+function uc_product_actions_update_sku_action($node, $context) {
+  // Get the current sell_price of the product
+  dpm($context['sku_method'], $name = NULL);
+  
+  if ($context['sku_method'] == 'url') {
+  	$src = 'node/'.$node->nid;
+  	dpm($src, $name = NULL);
+  	$answer = explode('/', db_result(db_query("SELECT dst FROM {url_alias} WHERE src='%s'", $src)));
+  	$new_model= $answer[1];
+  	dpm($new_model, $name = NULL);
+  }
+  elseif ($context['sku_method'] == 'nid') {
+  	$new_model = $node->nid;
+  }
+  elseif ($context['sku_method'] == 'title') {
+  	$new_model = $node->title;
+  }
+  else {
+  	//$new_model = db_result(db_query('SELECT nid FROM {uc_products} WHERE nid=%d', $node->nid));
+  	$new_model = 'test';
+  }
+  // Make sure we have a valid sell_price, which doesn't equal 0
+  if (!is_null($new_model) && $new_model != '') {
+    // Update the product's model
+    db_query("UPDATE {uc_products} SET model='%s' WHERE nid=%d", $new_model, $node->nid);
+  }
+}

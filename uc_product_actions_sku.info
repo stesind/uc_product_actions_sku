@@ -1,0 +1,13 @@
+; $Id: uc_product_actions.info,v 1.1 2010/10/09 08:44:17 stesind Exp $
+name = Ubercart product actions SKU
+description = Custom actions for modifying product data (sku).
+dependencies[] = uc_product
+dependencies[] = views_bulk_operations
+package = Ubercart - extra
+core = 6.x
+; Information added by drupal.org packaging script on 2010-10-09
+version = "6.x-1.0-dev"
+core = "6.x"
+project = "uc_product_actions_sku"
+datestamp = ""
+
